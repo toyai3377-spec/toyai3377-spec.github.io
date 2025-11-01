@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - GoldoraX</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap');
+body { 
+    font-family: 'Prompt', sans-serif; 
+    background: linear-gradient(to bottom, #080032, #1a0066); 
+    color: #fff; 
+    text-align: center; 
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+h1 {
+    color: gold;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    margin-bottom: 30px;
+}
+.controls {
+    background: #0b0047;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    width: 90%;
+    max-width: 500px;
+}
+input { 
+    width: 80%; 
+    padding: 12px; 
+    border-radius: 25px; 
+    border: 2px solid gold; 
+    margin: 10px auto; 
+    display: block; 
+    background: rgba(255,255,255,0.1); 
+    color: white; 
+    font-size: 16px;
+    text-align: center;
+}
+button { 
+    margin-top: 20px; 
+    background: gold; 
+    border: none; 
+    padding: 12px 30px; 
+    font-size: 18px; 
+    border-radius: 30px; 
+    font-weight: bold; 
+    color: #1a0033; 
+    cursor: pointer;
+    transition: all 0.2s;
+}
+button:hover { 
+    box-shadow: 0 0 15px gold; 
+    transform: translateY(-2px);
+}
+#adminPanel { 
+    margin-top: 30px; 
+    text-align: left;
+    width: 90%;
+    max-width: 500px;
+}
+h2 {
+    color: #ffd700;
+    border-bottom: 2px solid #ffd700;
+    padding-bottom: 5px;
+}
+#playerList { 
+    list-style: none; 
+    padding: 0;
+    max-height: 400px;
+    overflow-y: auto;
+    background: #1a0066;
+    border-radius: 10px;
+}
+#playerList li { 
+    background: #0b0047; 
+    margin-bottom: 8px; 
+    padding: 15px; 
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 5px solid limegreen;
+    font-size: 1.1rem;
+}
+#playerList li:nth-child(even) {
+    border-left: 5px solid gold;
+}
+.balance-display {
+    font-weight: bold;
+    color: limegreen;
+}
+#message {
+    color: yellow;
+    margin-top: 15px;
+    font-weight: bold;
+}
+</style>
+</head>
+<body>
+
+<h1>Admin Panel</h1>
+
+<div class="controls">
+    <form id="adminLoginForm">
+        <input type="password" id="adminPassword" placeholder="รหัสแอดมิน" required>
+        <button type="submit">เข้าสู่ระบบ</button>
+    </form>
+    <div id="message"></div>
+</div>
+
+<div id="adminPanel" style="display:none;">
+    <h2>รายชื่อผู้เล่นและยอดเงิน</h2>
+    <ul id="playerList">
+        <!-- ข้อมูลผู้เล่นจะถูกโหลดมาแสดงที่นี่ -->
+    </ul>
+    <a href="index_Version8.html" class="btn" style="display:block; margin-top: 20px;">🏠 กลับหน้าหลัก</a>
+</div>
+
+<script type="module">
+  // นำเข้า Firebase SDKs
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  // รหัส Configuration Keys ของโปรเจกต์ GoldoraX-Game
+  const firebaseConfig = {
+    apiKey: "AIzaSyACTSU6LYObSv5gEAfKJt4Yr4LaCCAkQvw",
+    authDomain: "goldorax-game.firebaseapp.com",
+    projectId: "goldorax-game",
+    storageBucket: "goldorax-game.firebasestorage.app",
+    messagingSenderId: "601999451419",
+    appId: "1:601999451419:web:f0782a8437b493eb8f5fbe",
+    measurementId: "G-09PW99QK06"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const CORRECT_ADMIN_PASSWORD = 'admin123'; // รหัสผ่านแอดมินที่กำหนดไว้
+
+  const adminLoginForm = document.getElementById('adminLoginForm');
+  const adminPasswordInput = document.getElementById('adminPassword');
+  const adminPanel = document.getElementById('adminPanel');
+  const playerList = document.getElementById('playerList');
+  const messageDisplay = document.getElementById('message');
+
+  // ฟังก์ชันดึงข้อมูลผู้เล่น
+  async function fetchPlayers() {
+      try {
+          const playersCol = collection(db, "players");
+          const playerSnapshot = await getDocs(playersCol);
+          
+          playerList.innerHTML = ''; // ล้างรายการเดิม
+          
+          if (playerSnapshot.empty) {
+              playerList.innerHTML = '<li>ไม่พบข้อมูลผู้เล่น</li>';
+              return;
+          }
+
+          playerSnapshot.forEach(doc => {
+              const data = doc.data();
+              const username = doc.id; // ใช้ document ID เป็นชื่อผู้ใช้
+              const balance = data.balance || 0;
+              
+              const listItem = document.createElement('li');
+              listItem.innerHTML = `
+                  <span>${username}</span>
+                  <span class="balance-display">${balance.toLocaleString()} 💰</span>
+              `;
+              playerList.appendChild(listItem);
+          });
+
+      } catch (error) {
+          console.error("Error fetching players:", error);
+          messageDisplay.textContent = 'เกิดข้อผิดพลาดในการดึงข้อมูลผู้เล่น!';
+      }
+  }
+
+  // Event Listener สำหรับการเข้าสู่ระบบ
+  adminLoginForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const password = adminPasswordInput.value;
+      
+      if (password === CORRECT_ADMIN_PASSWORD) {
+          adminLoginForm.style.display = 'none';
+          adminPanel.style.display = 'block';
+          messageDisplay.textContent = 'เข้าสู่ระบบสำเร็จ!';
+          fetchPlayers(); // เมื่อล็อกอินสำเร็จ ให้ดึงข้อมูลผู้เล่น
+      } else {
+          messageDisplay.textContent = 'รหัสผ่านไม่ถูกต้อง!';
+      }
+  });
+
+</script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เข้าสู่ระบบ | GoldoraX</title>
+<!-- นำเข้า Firebase SDKs -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  // รหัส Configuration Keys ของโปรเจกต์ GoldoraX-Game (ต้องตรงกับไฟล์อื่น ๆ)
+  const firebaseConfig = {
+    apiKey: "AIzaSyACTSU6LYObSv5gEAfKJt4Yr4LaCCAkQvw",
+    authDomain: "goldorax-game.firebaseapp.com",
+    projectId: "goldorax-game",
+    storageBucket: "goldorax-game.firebasestorage.app",
+    messagingSenderId: "601999451419",
+    appId: "1:601999451419:web:f0782a8437b493eb8f5fbe",
+    measurementId: "G-09PW99QK06"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  document.addEventListener('DOMContentLoaded', () => {
+      const loginBtn = document.getElementById('loginBtn');
+      const usernameInput = document.getElementById('username');
+      const passwordInput = document.getElementById('password');
+      const messageDiv = document.getElementById('message');
+
+      loginBtn.addEventListener('click', async () => {
+          const username = usernameInput.value.trim();
+          const password = passwordInput.value;
+
+          if (!username || !password) {
+              messageDiv.textContent = 'กรุณาใส่ชื่อผู้ใช้และรหัสผ่านให้ครบถ้วน';
+              return;
+          }
+
+          // 1. สร้าง Reference ไปยัง Document ของผู้ใช้นี้ใน Collection 'players'
+          const userRef = doc(db, "players", username);
+          
+          try {
+              // 2. ดึงข้อมูล Document
+              const docSnap = await getDoc(userRef);
+
+              if (!docSnap.exists()) {
+                  // ไม่พบชื่อผู้ใช้
+                  messageDiv.textContent = 'ชื่อผู้ใช้ไม่ถูกต้อง';
+                  return;
+              }
+
+              const userData = docSnap.data();
+              
+              // 3. ตรวจสอบรหัสผ่าน
+              // *หมายเหตุ: ในแอปพลิเคชันจริง ควรใช้การเข้ารหัส (Hashing) รหัสผ่าน
+              if (userData.password === password) {
+                  // ล็อกอินสำเร็จ
+                  messageDiv.textContent = 'เข้าสู่ระบบสำเร็จ! กำลังนำทาง...';
+                  
+                  // บันทึกชื่อผู้ใช้ใน sessionStorage เพื่อให้หน้าเกมดึงไปใช้
+                  sessionStorage.setItem('currentUsername', username); 
+                  
+                  // นำทางไปยังหน้าเกม
+                  setTimeout(() => {
+                      window.location.href = 'gxgame_index_Version4.html';
+                  }, 1500);
+                  
+              } else {
+                  // รหัสผ่านไม่ตรงกัน
+                  messageDiv.textContent = 'รหัสผ่านไม่ถูกต้อง';
+              }
+
+          } catch (error) {
+              console.error("Login Error:", error);
+              messageDiv.textContent = 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ ลองใหม่อีกครั้ง';
+          }
+      });
+  });
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap');
+  body { 
+    font-family: 'Prompt', sans-serif; 
+    background: linear-gradient(to bottom, #080032, #1a0066);
+    color: #fff; 
+    text-align: center; 
+    min-height: 100vh;
+    padding-top: 50px;
+  }
+  .container { 
+    margin: 50px auto; 
+    background: #0b0047;
+    padding: 40px 20px;
+    border-radius: 15px;
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+    width: 90%;
+    max-width: 400px;
+  }
+  h1 {
+    color: gold;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    margin-bottom: 30px;
+  }
+  input { 
+    width: 80%; 
+    padding: 12px; 
+    margin: 10px auto; 
+    display: block; 
+    border-radius: 25px; 
+    border: 2px solid gold; 
+    background: rgba(255,255,255,0.1); 
+    color: white; 
+    font-size: 16px; 
+    text-align: center; 
+  }
+  button { 
+    margin-top: 20px; 
+    background: gold; 
+    border: none; 
+    padding: 12px 30px; 
+    font-size: 18px; 
+    border-radius: 30px; 
+    font-weight: bold; 
+    color: #1a0033; 
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  button:hover { 
+    box-shadow: 0 0 15px gold; 
+    transform: translateY(-2px);
+  }
+  a { 
+    color: gold; 
+    text-decoration: none;
+    transition: color 0.2s; 
+  }
+  a:hover {
+    color: #ffd700;
+  }
+  #message {
+    margin-top: 15px;
+    color: yellow;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>เข้าสู่ระบบ</h1>
+  <input type="text" id="username" placeholder="ชื่อผู้ใช้" required>
+  <input type="password" id="password" placeholder="รหัสผ่าน" required>
+  <button id="loginBtn">เข้าสู่ระบบ</button>
+  <div id="message"></div>
+  <p style="margin-top: 20px;">ยังไม่มีบัญชี? <a href="register_Version6.html">สมัครสมาชิก</a></p>
+  <p><a href="index_Version8.html">🏠 กลับหน้าหลัก</a></p>
+</div>
+</body>
+</html>

@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เกมน้ำเต้าปูปลา | GoldoraX</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap');
+  body { 
+    font-family: 'Prompt', sans-serif; 
+    /* Deep Space Gradient */
+    background: linear-gradient(180deg, #020024 0%, #000045 35%, #080064 100%); 
+    color: #fff; 
+    text-align: center; 
+    min-height: 100vh; 
+    margin: 0; 
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 {
+    color: #00ffff; /* Neon Cyan */
+    text-shadow: 0 0 15px rgba(0, 255, 255, 0.8), 0 0 5px rgba(255, 255, 255, 0.5);
+    margin-bottom: 10px;
+    font-size: 2.8rem;
+  }
+  header { 
+    width: 90%;
+    max-width: 600px;
+    margin-bottom: 10px;
+    /* Glassmorphism/Dark UI background */
+    background: rgba(17, 0, 92, 0.5); 
+    backdrop-filter: blur(5px);
+    padding: 15px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+  }
+  .user-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.1rem;
+    padding: 5px 0;
+  }
+  .username-display {
+    color: #ffd700;
+    font-weight: bold;
+  }
+  .balance-display {
+    color: #76ff03; /* Neon Green */
+    font-weight: bold;
+    font-size: 1.5rem;
+  }
+
+  /* Action Buttons for LINE OA */
+  .action-buttons {
+    display: flex;
+    justify-content: space-around;
+    width: 90%;
+    max-width: 500px;
+    margin: 10px auto 20px auto;
+  }
+  .action-btn {
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: 45%;
+    transform: translateY(0);
+  }
+  .deposit-btn {
+    background: linear-gradient(45deg, #76ff03, #388e3c);
+    color: #000;
+    box-shadow: 0 4px 0 #1b5e20, 0 0 15px #76ff03;
+  }
+  .deposit-btn:hover {
+    background: linear-gradient(45deg, #aeff03, #66bb6a);
+    transform: translateY(-4px);
+    box-shadow: 0 4px 0 #1b5e20, 0 0 25px #76ff03;
+  }
+  .withdraw-btn {
+    background: linear-gradient(45deg, #ff5757, #c62828);
+    color: white;
+    box-shadow: 0 4px 0 #8c0000, 0 0 15px #ff5757;
+  }
+  .withdraw-btn:hover {
+    background: linear-gradient(45deg, #ff8a80, #ef5350);
+    transform: translateY(-4px);
+    box-shadow: 0 4px 0 #8c0000, 0 0 25px #ff5757;
+  }
+  /* End Action Buttons */
+
+
+  /* Animal Selection Area */
+  .animals {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    width: 90%;
+    max-width: 500px;
+    margin: 20px auto;
+  }
+  
+  /* --- ปุ่มสัตว์แบบ 3D เรืองแสงและไล่เฉดสีใหม่ --- */
+  .animal-btn {
+    padding: 18px;
+    /* Gradient background for metallic look */
+    background: linear-gradient(135deg, #1c0082, #0b0047); 
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Smooth transition */
+    font-size: 3rem;
+    line-height: 1;
+    /* 3D/Floating Effect - ลอยขึ้นเล็กน้อย */
+    transform: translateY(-2px); 
+    box-shadow: 
+        0 5px 0 0 #08003d, /* Deep shadow for dimension */
+        inset 0 0 10px rgba(255, 255, 255, 0.1), /* Inner highlight for gloss */
+        0 10px 20px rgba(0, 0, 0, 0.9); /* Standard shadow */
+  }
+  .animal-btn span {
+      display: block;
+      font-size: 1.1rem; 
+      color: #ff99ff;
+      margin-top: 8px;
+      font-weight: 600;
+  }
+  .animal-btn:hover {
+    /* เอฟเฟกต์ยกตัวและเรืองแสงเมื่อวางเมาส์ */
+    transform: translateY(-8px) scale(1.08); /* Lift and scale more dramatically */
+    box-shadow: 
+        0 4px 0 #05002b, /* Adjusted deep shadow */
+        0 18px 30px rgba(0, 0, 0, 1.2),
+        0 0 35px #00ffff; /* Brighter Cyan Glow */
+  }
+  .animal-btn.selected {
+    /* สถานะเมื่อถูกเลือก - Gradient สีทอง */
+    background: linear-gradient(135deg, gold, #ffec85); /* Gold gradient */
+    border-color: transparent;
+    transform: translateY(-4px); 
+    box-shadow: 
+        0 2px 0 #b8860b, /* Darker gold shadow */
+        0 0 40px gold,
+        0 0 70px rgba(255, 215, 0, 0.7); /* Wide gold glow */
+  }
+  /* --- สิ้นสุด ปุ่มสัตว์แบบ 3D เรืองแสงและไล่เฉดสีใหม่ --- */
+
+
+  /* Controls Area */
+  .controls {
+    /* Glassmorphism/Dark UI background */
+    background: rgba(11, 0, 71, 0.6);
+    backdrop-filter: blur(5px);
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.8), 0 0 5px #ff99ff; /* Shadow with pink highlight */
+    width: 90%;
+    max-width: 600px; /* เพิ่มความกว้างรองรับปุ่มชิป */
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .dice-area {
+    font-size: 4rem; /* ใหญ่ขึ้น */
+    margin: 15px 0;
+    min-height: 60px;
+    font-weight: bold;
+    color: #00ffff; /* Neon Cyan */
+    text-shadow: 0 0 10px #00ffff;
+  }
+  .result-area {
+    min-height: 30px;
+    margin-bottom: 15px;
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #76ff03; /* Neon Green */
+    text-shadow: 0 0 8px #76ff03;
+  }
+
+  /* Chip Buttons Styling */
+  .chip-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 15px;
+    flex-wrap: wrap; /* รองรับมือถือ */
+  }
+  .chip-btn {
+    background: linear-gradient(45deg, #ffd700, #ffec85);
+    color: #1a0033;
+    border: 2px solid #b8860b;
+    border-radius: 50%; /* วงกลม */
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 3px 0 #b8860b, 0 0 10px gold;
+  }
+  .chip-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 0 #b8860b, 0 0 15px gold;
+  }
+  /* End Chip Buttons Styling */
+
+  input[type="number"] {
+    width: 150px;
+    padding: 10px;
+    border-radius: 20px;
+    border: 2px solid gold;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 16px;
+    text-align: center;
+    margin-right: 10px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+  }
+  #roll {
+    /* Gold Gradient Roll Button */
+    background: linear-gradient(45deg, gold, #ffec85);
+    border: none;
+    padding: 12px 30px;
+    font-size: 1.2rem;
+    border-radius: 25px;
+    font-weight: bold;
+    color: #1a0033;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 4px 0 #b8860b, 0 0 20px gold; /* 3D Shadow + Glow */
+    transform: translateY(-2px);
+  }
+  #roll:hover {
+    box-shadow: 0 4px 0 #b8860b, 0 0 30px gold; /* Enhance glow on hover */
+    transform: translateY(-5px) scale(1.05);
+  }
+  #roll:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: translateY(0);
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  }
+
+  /* Modal/Message Box Styling */
+  .modal {
+      display: none; 
+      position: fixed; 
+      z-index: 1000; 
+      left: 0;
+      top: 0;
+      width: 100%; 
+      height: 100%; 
+      overflow: auto; 
+      background-color: rgba(0,0,0,0.7); 
+      padding-top: 150px;
+  }
+  .modal-content {
+      background-color: #1a0066;
+      margin: 5% auto; 
+      padding: 30px;
+      border: 3px solid #00ffff; /* Neon border */
+      width: 80%; 
+      max-width: 350px;
+      border-radius: 15px;
+      box-shadow: 0 0 25px #00ffff;
+      color: white;
+      text-align: center;
+  }
+  .modal-content button {
+      margin-top: 20px;
+      background: #00ffff; /* Neon Cyan Button */
+      color: #1a0033;
+      font-weight: bold;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 10px #00ffff;
+  }
+  .modal-content button:hover {
+      box-shadow: 0 0 20px #00ffff;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Modal/Message Box --><div id="messageModal" class="modal">
+    <div class="modal-content">
+      <p id="modalMessage"></p>
+      <button onclick="closeModal()">ตกลง</button>
+    </div>
+  </div>
+
+  <h1>เกมน้ำเต้าปูปลา</h1>
+
+  <header>
+    <div class="user-info">
+      <div>ผู้เล่น: <span id="usernameDisplay" class="username-display">...</span></div>
+      <div>ยอดเงิน: <span id="balanceDisplay" class="balance-display">0 💰</span></div>
+    </div>
+  </header>
+
+  <!-- ปุ่มฝาก/ถอน ที่เชื่อมต่อ LINE OA --><div class="action-buttons">
+      <button onclick="window.location.href='https://lin.ee/Mm1caQx'" class="action-btn deposit-btn">
+          💰 ฝากเงิน
+      </button>
+      <button onclick="window.location.href='https://lin.ee/Mm1caQx'" class="action-btn withdraw-btn">
+          💳 ถอนเงิน
+      </button>
+  </div>
+  <!-- สิ้นสุด ปุ่มฝาก/ถอน --><div class="animals">
+    <div class="animal-btn" data-animal="ปลา">🐟 <span>ปลา</span></div>
+    <div class="animal-btn" data-animal="กุ้ง">🦐 <span>กุ้ง</span></div>
+    <div class="animal-btn" data-animal="น้ำเต้า">🍈 <span>น้ำเต้า</span></div>
+    <div class="animal-btn" data-animal="เสือ">🐯 <span>เสือ</span></div> 
+    <div class="animal-btn" data-animal="ปู">🦀 <span>ปู</span></div>
+    <div class="animal-btn" data-animal="ไก่">🐓 <span>ไก่</span></div>
+  </div>
+
+  <div class="controls">
+    <div class="dice-area" id="diceArea">...</div>
+    <div class="result-area" id="result">พร้อมเดิมพัน!</div>
+    
+    <!-- ปุ่มชิปเดิมพันใหม่ -->
+    <div class="chip-buttons">
+        <button class="chip-btn" data-amount="50">50</button>
+        <button class="chip-btn" data-amount="100">100</button>
+        <button class="chip-btn" data-amount="200">200</button>
+        <button class="chip-btn" data-amount="500">500</button>
+        <button class="chip-btn" data-amount="1000">1000</button>
+    </div>
+    
+    <div style="display: flex; justify-content: center; align-items: center;">
+        <input type="number" id="betAmount" placeholder="จำนวนเงินเดิมพัน" value="100" min="10">
+        <button id="roll">หมุน!</button>
+    </div>
+  </div>
+
+  <a href="index_Version8.html" style="margin-top: 20px; color: #ccc; text-decoration: none;">🏠 กลับหน้าหลัก</a>
+
+  <script type="module">
+    // นำเข้า Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // รหัส Configuration Keys ของโปรเจกต์ GoldoraX-Game
+    const firebaseConfig = {
+      apiKey: "AIzaSyACTSU6LYObSv5gEAfKJt4Yr4LaCCAkQvw",
+      authDomain: "goldorax-game.firebaseapp.com",
+      projectId: "goldorax-game",
+      storageBucket: "goldorax-game.firebasestorage.app",
+      messagingSenderId: "601999451419",
+      appId: "1:601999451419:web:f0782a8437b493eb8f5fbe",
+      measurementId: "G-09PW99QK06"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ************************
+    // *** GLOBAL VARIABLES ***
+    // ************************
+    let currentUsername = null;
+    let balance = 0;
+
+    const animals = ['ปลา', 'กุ้ง', 'น้ำเต้า', 'เสือ', 'ปู', 'ไก่'];
+    const emojis = ['🐟', '🦐', '🍈', '🐯', '🦀', '🐓'];
+    const selected = new Set();
+    const balanceDisplay = document.getElementById('balanceDisplay');
+    const usernameDisplay = document.getElementById('usernameDisplay');
+    const betInput = document.getElementById('betAmount');
+    const diceArea = document.getElementById('diceArea');
+    const result = document.getElementById('result');
+    const rollButton = document.getElementById('roll');
+
+    // *************************
+    // *** MODAL FUNCTIONS ***
+    // *************************
+    const messageModal = document.getElementById('messageModal');
+    const modalMessage = document.getElementById('modalMessage');
+    
+    function showModal(message) {
+        modalMessage.textContent = message;
+        messageModal.style.display = 'block';
+    }
+
+    window.closeModal = function() {
+        messageModal.style.display = 'none';
+    }
+
+    // ************************
+    // *** FIREBASE & AUTH ***
+    // ************************
+
+    // 1. ตรวจสอบสถานะการล็อกอินและโหลดข้อมูล
+    document.addEventListener('DOMContentLoaded', async () => {
+        currentUsername = sessionStorage.getItem('currentUsername');
+
+        if (!currentUsername) {
+            // ถ้าไม่ได้ล็อกอิน ให้redirect ไปหน้า login
+            showModal('กรุณาเข้าสู่ระบบก่อนเล่นเกม');
+            setTimeout(() => {
+                window.location.href = 'login_Version4.html';
+            }, 2000);
+            return;
+        }
+
+        usernameDisplay.textContent = currentUsername;
+        await loadBalance();
+
+        // เปิดใช้งานปุ่มเลือกสัตว์
+        document.querySelectorAll('.animal-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const animal = btn.getAttribute('data-animal');
+                if (selected.has(animal)) {
+                    selected.delete(animal);
+                    btn.classList.remove('selected');
+                } else {
+                    if (selected.size < 3) {
+                        selected.add(animal);
+                        btn.classList.add('selected');
+                    } else {
+                        showModal('เลือกได้สูงสุด 3 ตัวเท่านั้น!');
+                    }
+                }
+            });
+        });
+        
+        // ** NEW: Event listeners สำหรับปุ่มชิป **
+        document.querySelectorAll('.chip-btn').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const amount = chip.getAttribute('data-amount');
+                betInput.value = amount;
+            });
+        });
+    });
+
+    // 2. ฟังก์ชันโหลด/อัปเดตยอดเงิน
+    async function loadBalance() {
+        if (!currentUsername) return;
+
+        try {
+            const userRef = doc(db, "players", currentUsername);
+            const docSnap = await getDoc(userRef);
+
+            if (docSnap.exists()) {
+                balance = docSnap.data().balance || 0;
+            } else {
+                // กรณีไม่พบผู้ใช้ (ไม่น่าเกิดขึ้นถ้าผ่านหน้า login มาแล้ว)
+                balance = 0;
+            }
+            balanceDisplay.textContent = balance.toLocaleString() + ' 💰';
+        } catch (error) {
+            console.error("Error loading balance:", error);
+            showModal('เกิดข้อผิดพลาดในการโหลดข้อมูลยอดเงิน!');
+        }
+    }
+
+    async function saveBalance(newBalance) {
+        if (!currentUsername) return;
+
+        try {
+            const userRef = doc(db, "players", currentUsername);
+            await updateDoc(userRef, {
+                balance: newBalance
+            });
+            balance = newBalance;
+            balanceDisplay.textContent = balance.toLocaleString() + ' 💰';
+        } catch (error) {
+            console.error("Error saving balance:", error);
+            showModal('เกิดข้อผิดพลาดในการบันทึกยอดเงิน!');
+            // หากบันทึกไม่ได้ ควรโหลดใหม่เพื่อป้องกันข้อมูลผิดพลาด
+            await loadBalance(); 
+        }
+    }
+
+    // *************************
+    // *** GAME LOGIC ***
+    // *************************
+
+    rollButton.addEventListener('click', async () => {
+        const betAmount = parseInt(betInput.value);
+
+        if (isNaN(betAmount) || betAmount <= 0) {
+            showModal('กรุณาใส่จำนวนเงินเดิมพันที่ถูกต้อง!');
+            return;
+        }
+        
+        if (balance < betAmount) {
+            showModal('ยอดเงินไม่เพียงพอ! กรุณาฝากเงินผ่าน LINE OA');
+            return;
+        }
+
+        if (selected.size === 0) {
+            showModal('กรุณาเลือกสัตว์ก่อน!');
+            return;
+        }
+
+        // 1. หักเงินเดิมพัน
+        const newBalanceAfterBet = balance - betAmount;
+        await saveBalance(newBalanceAfterBet); // บันทึกยอดเงินที่หักแล้วทันที
+        
+        rollButton.disabled = true;
+        diceArea.textContent = '🎲 หมุน...';
+        result.textContent = 'รอลุ้นผล...';
+
+        setTimeout(async () => {
+            // 2. สุ่มลูกเต๋า 3 ลูก
+            const diceResults = [];
+            for (let i = 0; i < 3; i++) {
+                const index = Math.floor(Math.random() * animals.length);
+                diceResults.push(animals[index]);
+            }
+
+            // 3. แสดงผลลูกเต๋า
+            diceArea.innerHTML = diceResults.map(animal => emojis[animals.indexOf(animal)]).join(' ');
+
+            // 4. ตรวจสอบผล
+            let hitCount = 0;
+            diceResults.forEach(animal => {
+                if (selected.has(animal)) {
+                    hitCount++;
+                }
+            });
+
+            let finalBalance;
+            let winAmount = 0;
+            let payoutRatio = 0;
+
+            if (hitCount > 0) {
+                // ** UPDATED LOGIC: ปรับอัตราจ่ายเป็นมาตรฐาน (Traditional Bau Cua Tom Ca) **
+                // ถูก 1 ตัว: จ่าย 1:1 (ได้เงินเดิมพันคืน + กำไร 1 เท่า) -> payoutRatio = 1
+                // ถูก 2 ตัว: จ่าย 1:2 (ได้เงินเดิมพันคืน + กำไร 2 เท่า) -> payoutRatio = 2
+                // ถูก 3 ตัว: จ่าย 1:3 (ได้เงินเดิมพันคืน + กำไร 3 เท่า) -> payoutRatio = 3
+                if (hitCount === 1) payoutRatio = 1;
+                else if (hitCount === 2) payoutRatio = 2;
+                else if (hitCount >= 3) payoutRatio = 3;
+
+                winAmount = betAmount * payoutRatio;
+                finalBalance = newBalanceAfterBet + betAmount + winAmount; // (ยอดเงินหลังหักเดิมพัน) + (เงินเดิมพันที่ถูก) + (เงินรางวัล)
+                result.textContent = `🎉 คุณชนะ! ถูก ${hitCount} ตัว (+${winAmount.toLocaleString()} 💰)`;
+                
+            } else {
+                // แพ้: ยอดเงินถูกหักไปแล้ว ไม่ต้องทำอะไรเพิ่ม
+                finalBalance = newBalanceAfterBet;
+                result.textContent = `😭 คุณแพ้! ลองใหม่อีกครั้ง`;
+            }
+
+            // 5. อัปเดตและบันทึกยอดเงินใหม่
+            await saveBalance(finalBalance);
+
+            // รีเซ็ตการเลือกและปุ่ม
+            selected.clear();
+            document.querySelectorAll('.animal-btn').forEach(btn => btn.classList.remove('selected'));
+            
+            rollButton.disabled = false;
+        }, 1500);
+    });
+
+  </script>
+</body>
+</html>

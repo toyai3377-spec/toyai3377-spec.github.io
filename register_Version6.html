@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สมัครสมาชิก | GoldoraX</title>
+<!-- นำเข้า Firebase SDKs -->
+<script type="module">
+  // ใช้ CDN สำหรับ Firebase
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getFirestore, collection, setDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  // รหัส Configuration Keys ของโปรเจกต์ GoldoraX-Game
+  const firebaseConfig = {
+    apiKey: "AIzaSyACTSU6LYObSv5gEAfKJt4Yr4LaCCAkQvw",
+    authDomain: "goldorax-game.firebaseapp.com",
+    projectId: "goldorax-game",
+    storageBucket: "goldorax-game.firebasestorage.app",
+    messagingSenderId: "601999451419",
+    appId: "1:601999451419:web:f0782a8437b493eb8f5fbe",
+    measurementId: "G-09PW99QK06"
+  };
+  
+  // Initialize Firebase และ Firestore
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // กำหนด Event Listener
+  document.getElementById('registerBtn').addEventListener('click', async function() {
+      const usernameInput = document.getElementById('username').value.trim();
+      const passwordInput = document.getElementById('password').value;
+      const confirmPasswordInput = document.getElementById('confirmPassword').value;
+
+      if (usernameInput === '' || passwordInput === '' || confirmPasswordInput === '') {
+          // ใช้ console.warn แทน alert() เพื่อไม่ให้เกิด popup ใน iframe
+          console.warn('กรุณากรอกข้อมูลให้ครบทุกช่อง!');
+          return;
+      }
+
+      if (passwordInput !== confirmPasswordInput) {
+          console.warn('รหัสผ่านไม่ตรงกัน!');
+          return;
+      }
+
+      // เนื่องจาก GitHub Pages ไม่รองรับระบบ Authentication เต็มรูปแบบ
+      // เราจะใช้ชื่อผู้ใช้เป็น ID ของเอกสาร (Document ID) ใน Firestore
+      const userRef = doc(db, "players", usernameInput);
+
+      try {
+          // 1. ตรวจสอบว่าชื่อผู้ใช้นี้ถูกใช้ไปแล้วหรือยัง
+          const docSnap = await getDoc(userRef);
+          if (docSnap.exists()) {
+              console.warn(`ชื่อผู้ใช้ "${usernameInput}" ถูกใช้ไปแล้ว กรุณาเลือกชื่ออื่น`);
+              return;
+          }
+
+          // 2. สร้างข้อมูลผู้ใช้ใหม่ (ยอดเงินเริ่มต้น 0)
+          const newUserData = {
+              username: usernameInput,
+              password: passwordInput, // *คำเตือน: นี่คือการเก็บรหัสผ่านแบบไม่เข้ารหัส (unsafe) เหมาะสำหรับโปรเจกต์ทดลองเท่านั้น*
+              balance: 0, // <--- เปลี่ยนเป็น 0
+              createdAt: new Date().toISOString()
+          };
+          
+          // 3. บันทึกข้อมูลไปยัง Firestore ใน Collection "players"
+          await setDoc(userRef, newUserData);
+
+          // 4. บันทึกสถานะล็อกอินใน sessionStorage และเปลี่ยนเส้นทาง
+          sessionStorage.setItem('isLoggedIn', 'true');
+          sessionStorage.setItem('currentUsername', usernameInput); // บันทึกชื่อผู้ใช้ที่ล็อกอิน
+          // ใช้ console.log แทน alert()
+          console.log('สมัครสมาชิกสำเร็จ! ยินดีต้อนรับสู่ GoldoraX');
+          window.location.href = 'index_Version8.html';
+
+      } catch (error) {
+          console.error("Error registering user:", error);
+          // ใช้ console.error แทน alert()
+          console.error('เกิดข้อผิดพลาดในการสมัครสมาชิก โปรดลองอีกครั้ง');
+      }
+  });
+</script>
+<style>
+  body { font-family: 'Prompt', sans-serif; background: #080032; color: #fff; text-align: center; }
+  .container { margin-top: 80px; }
+  input { width: 45%; max-width: 300px; min-width: 200px; padding: 10px; margin: 10px auto; display: block; border-radius: 25px; border: 2px solid gold; background: rgba(255,255,255,0.1); color: white; font-size: 16px; text-align: center; }
+  button { margin-top: 20px; background: gold; border: none; padding: 12px 30px; font-size: 18px; border-radius: 30px; font-weight: bold; color: #1a0033; cursor: pointer; }
+  button:hover { box-shadow: 0 0 15px gold; }
+  a { color: gold; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>สมัครสมาชิก</h1>
+  <input type="text" id="username" placeholder="ชื่อผู้ใช้">
+  <input type="password" id="password" placeholder="รหัสผ่าน">
+  <input type="password" id="confirmPassword" placeholder="ยืนยันรหัสผ่าน">
+  <button id="registerBtn">สมัครสมาชิก</button>
+  <p>มีบัญชีอยู่แล้ว? <a href="login_Version4.html">เข้าสู่ระบบ</a></p>
+  <p><a href="index_Version8.html">กลับหน้าหลัก</a></p>
+</div>
+</body>
+</html>
