@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel | GoldoraX</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* Base Styles */
+body {
+    font-family: 'Prompt', sans-serif;
+    background: linear-gradient(to bottom, #080032, #1a0066);
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+    min-height: 100vh;
+}
+h1 {
+    color: gold;
+    margin-bottom: 30px;
+}
+/* Login Form */
+#adminLoginForm {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+}
+input[type="password"] {
+    width: 80%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 2px solid gold;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 16px;
+    text-align: center;
+}
+#loginBtn {
+    background: gold;
+    border: none;
+    padding: 12px 30px;
+    font-size: 18px;
+    border-radius: 8px;
+    font-weight: bold;
+    color: #1a0033;
+    cursor: pointer;
+    transition: 0.2s;
+}
+#loginBtn:hover {
+    box-shadow: 0 0 15px gold;
+}
+
+/* Admin Panel */
+#adminPanel {
+    margin-top: 40px;
+    text-align: left;
+}
+#playerList {
+    list-style: none;
+    padding: 0;
+    max-width: 800px;
+    margin: 20px auto;
+}
+.player-item {
+    background: #002255;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+.player-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+.player-info strong {
+    font-size: 18px;
+    color: gold;
+}
+.player-info span {
+    font-size: 14px;
+    color: limegreen;
+    font-weight: 600;
+}
+
+/* Action Area */
+.player-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.action-input {
+    width: 80px;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background: #111;
+    color: white;
+    text-align: right;
+}
+.deposit-btn, .withdraw-btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.deposit-btn {
+    background: limegreen;
+    color: white;
+}
+.deposit-btn:hover {
+    background: #55ff55;
+}
+.withdraw-btn {
+    background: #ff4d4d;
+    color: white;
+}
+.withdraw-btn:hover {
+    background: #ff7777;
+}
+
+/* Status Message */
+#statusMessage {
+    margin-top: 20px;
+    font-weight: bold;
+    color: yellow;
+}
+
+/* Back Button */
+.back-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 10px 15px;
+    background: #333;
+    color: white;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+.back-btn:hover {
+    background: #555;
+}
+
+</style>
+</head>
+<body>
+
+<a href="index_Version8.html" class="back-btn">← กลับหน้าหลัก</a>
+
+<h1>หน้าสำหรับแอดมิน</h1>
+
+<form id="adminLoginForm">
+  <input type="password" id="adminPassword" placeholder="รหัสแอดมิน" required>
+  <button type="submit" id="loginBtn">เข้าสู่ระบบ</button>
+</form>
+
+<div id="statusMessage"></div>
+
+<div id="adminPanel" style="display:none;">
+  <h2>รายชื่อผู้เล่นและยอดเงิน (Real-time)</h2>
+  <ul id="playerList">
+    <!-- Player items will be inserted here -->
+  </ul>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getFirestore, doc, collection, onSnapshot, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    
+    // --- Firebase Setup ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyACTSU6LYObSv5gEAfKJt4Yr4LaCCAkQvw",
+        authDomain: "goldorax-game.firebaseapp.com",
+        projectId: "goldorax-game",
+        storageBucket: "goldorax-game.firebasestorage.app",
+        messagingSenderId: "601999451419",
+        appId: "1:601999451419:web:f0782a8437b493eb8f5fbe",
+        measurementId: "G-09PW99QK06"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const playersCollectionRef = collection(db, "players");
+
+    // --- DOM Elements ---
+    const adminLoginForm = document.getElementById('adminLoginForm');
+    const adminPanel = document.getElementById('adminPanel');
+    const playerList = document.getElementById('playerList');
+    const statusMessage = document.getElementById('statusMessage');
+
+    // --- Admin State ---
+    const ADMIN_PASSWORD = '774570'; // รหัสผ่านสำหรับแอดมิน (ถูกเปลี่ยนตามที่ผู้ใช้ร้องขอ)
+    let isAdminLoggedIn = sessionStorage.getItem('isAdminLoggedIn') === 'true';
+
+    // --- Core Functions ---
+
+    // 1. Update Balance Logic
+    async function updateBalance(username, amount, type) {
+        if (isNaN(amount) || amount <= 0) {
+            statusMessage.textContent = 'กรุณาใส่จำนวนเงินที่ถูกต้อง';
+            return;
+        }
+
+        const playerDocRef = doc(db, "players", username);
+        
+        try {
+            // Get current balance (needed to prevent negative balance on withdrawal)
+            const playerSnapshot = await getDocs(playersCollectionRef);
+            let currentBalance = 0;
+            playerSnapshot.forEach(doc => {
+                if (doc.id === username) {
+                    currentBalance = doc.data().balance || 0;
+                }
+            });
+
+            let newBalance;
+            if (type === 'deposit') {
+                newBalance = currentBalance + amount;
+            } else if (type === 'withdraw') {
+                if (currentBalance < amount) {
+                    statusMessage.textContent = `ถอนไม่สำเร็จ: ยอดเงินของ ${username} ไม่พอ (${currentBalance.toLocaleString('th-TH')} บาท)`;
+                    return;
+                }
+                newBalance = currentBalance - amount;
+            }
+
+            await updateDoc(playerDocRef, {
+                balance: newBalance
+            });
+            
+            statusMessage.textContent = `${type === 'deposit' ? 'ฝากเงิน' : 'ถอนเงิน'} สำเร็จ! ผู้เล่น ${username} ยอดเงินใหม่: ${newBalance.toLocaleString('th-TH')} บาท`;
+        
+        } catch (error) {
+            console.error(`Error updating balance for ${username}:`, error);
+            statusMessage.textContent = 'เกิดข้อผิดพลาดในการอัปเดตยอดเงิน';
+        }
+    }
+
+    // 2. Render Player List (Real-time Listener)
+    function setupPlayerListener() {
+        onSnapshot(playersCollectionRef, (snapshot) => {
+            playerList.innerHTML = ''; // Clear current list
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const username = doc.id;
+                const balance = data.balance || 0;
+
+                const listItem = document.createElement('li');
+                listItem.className = 'player-item';
+                
+                listItem.innerHTML = `
+                    <div class="player-info">
+                        <strong>${username}</strong>
+                        <span>ยอดเงิน: ${balance.toLocaleString('th-TH')} บาท</span>
+                    </div>
+                    <div class="player-actions">
+                        <input type="number" class="action-input" placeholder="จำนวนเงิน" min="1" id="input-${username}">
+                        <button class="deposit-btn" data-username="${username}" data-type="deposit">ฝากเงิน</button>
+                        <button class="withdraw-btn" data-username="${username}" data-type="withdraw">ถอนเงิน</button>
+                    </div>
+                `;
+                
+                playerList.appendChild(listItem);
+            });
+
+            // Attach event listeners to the new buttons
+            document.querySelectorAll('.deposit-btn, .withdraw-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const btn = e.target;
+                    const username = btn.dataset.username;
+                    const type = btn.dataset.type;
+                    const amountInput = document.getElementById(`input-${username}`);
+                    const amount = parseInt(amountInput.value);
+
+                    if (amountInput.value === "") {
+                         statusMessage.textContent = 'กรุณาใส่จำนวนเงินก่อนดำเนินการ';
+                         return;
+                    }
+
+                    updateBalance(username, amount, type);
+                    amountInput.value = ''; // Clear input after transaction
+                });
+            });
+        });
+    }
+
+    // 3. Login Check and Initialization
+    function checkLoginStatus() {
+        if (isAdminLoggedIn) {
+            adminLoginForm.style.display = 'none';
+            adminPanel.style.display = 'block';
+            setupPlayerListener();
+        } else {
+            adminLoginForm.style.display = 'block';
+            adminPanel.style.display = 'none';
+        }
+    }
+
+    adminLoginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const password = document.getElementById('adminPassword').value;
+        
+        if (password === ADMIN_PASSWORD) {
+            isAdminLoggedIn = true;
+            sessionStorage.setItem('isAdminLoggedIn', 'true');
+            statusMessage.textContent = 'เข้าสู่ระบบสำเร็จ!';
+            statusMessage.style.color = 'limegreen';
+            checkLoginStatus();
+        } else {
+            statusMessage.textContent = 'รหัสผ่านไม่ถูกต้อง!';
+            statusMessage.style.color = 'red';
+        }
+        document.getElementById('adminPassword').value = '';
+    });
+
+    // Run on load
+    document.addEventListener('DOMContentLoaded', checkLoginStatus);
+
+</script>
+
+</body>
+</html>
